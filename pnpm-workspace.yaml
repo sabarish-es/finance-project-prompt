@@ -1,0 +1,7 @@
+allowBuilds:
+  '@prisma/engines': false
+  better-sqlite3: false
+  esbuild: false
+  msw: false
+  prisma: true
+  sharp: false
