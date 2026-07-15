@@ -4,33 +4,56 @@ import { useState, useEffect } from 'react';
 import { getCustomers, createCustomer, updateCustomer } from '@/app/actions/finance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit2, Trash2, MapPin, Phone, Mail } from 'lucide-react';
+import { Plus, Edit2, MapPin, Phone, Mail, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { CustomerForm } from '@/components/customer-form';
 
 interface Customer {
   id: string;
   name: string;
   email?: string;
   phone?: string;
+  aadharNumber?: string;
+  occupationType?: string;
+  monthlyIncome?: number;
+  currentResidentialAddress?: string;
+  currentCity?: string;
+  currentState?: string;
+  bankAccountNumber?: string;
+  bankAccountType?: string;
   location?: string;
   address?: string;
   createdAt: Date | number;
+  dateOfBirth?: string;
+  fathersName?: string;
+  gender?: string;
+  maritalStatus?: string;
+  dependents?: number;
+  panNumber?: string;
+  voterIdNumber?: string;
+  currentResidentialType?: string;
+  currentResidenceStability?: number;
+  permanentResidentialAddress?: string;
+  permanentCity?: string;
+  permanentState?: string;
+  permanentPincode?: string;
+  permanentResidentialType?: string;
+  permanentResidenceStability?: string;
+  currentPincode?: string;
+  bankAccountName?: string;
+  bankBranchName?: string;
+  ifscCode?: string;
+  businessAddress?: string;
 }
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    location: '',
-    address: '',
-  });
+  const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>();
 
   useEffect(() => {
     loadCustomers();
@@ -43,48 +66,31 @@ export default function CustomersPage() {
     setLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (editingId) {
-      const result = await updateCustomer(
-        editingId,
-        formData.name,
-        formData.email,
-        formData.phone,
-        formData.location,
-        formData.address
-      );
-      if (result.success) {
-        setEditingId(null);
-        setFormData({ name: '', email: '', phone: '', location: '', address: '' });
-        setIsOpen(false);
-        await loadCustomers();
+  const handleFormSubmit = async (formData: any) => {
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        const result = await updateCustomer(editingId, formData);
+        if (result.success) {
+          setEditingId(null);
+          setEditingCustomer(undefined);
+          setIsOpen(false);
+          await loadCustomers();
+        }
+      } else {
+        const result = await createCustomer(formData);
+        if (result.success) {
+          setIsOpen(false);
+          await loadCustomers();
+        }
       }
-    } else {
-      const result = await createCustomer(
-        formData.name,
-        formData.email,
-        formData.phone,
-        formData.location,
-        formData.address
-      );
-      if (result.success) {
-        setFormData({ name: '', email: '', phone: '', location: '', address: '' });
-        setIsOpen(false);
-        await loadCustomers();
-      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEdit = (customer: Customer) => {
-    setFormData({
-      name: customer.name,
-      email: customer.email || '',
-      phone: customer.phone || '',
-      location: customer.location || '',
-      address: customer.address || '',
-    });
+    setEditingCustomer(customer);
     setEditingId(customer.id);
     setIsOpen(true);
   };
@@ -92,7 +98,7 @@ export default function CustomersPage() {
   const handleClose = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({ name: '', email: '', phone: '', location: '', address: '' });
+    setEditingCustomer(undefined);
   };
 
   return (
@@ -100,70 +106,27 @@ export default function CustomersPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Customers</h1>
-          <p className="text-slate-600">Manage your loan customers</p>
+          <p className="text-slate-600">Manage loan customers and their details</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ name: '', email: '', phone: '', location: '', address: '' }); }}>
+            <Button onClick={() => { setEditingId(null); setEditingCustomer(undefined); }}>
               <Plus className="w-4 h-4 mr-2" />
               Add Customer
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Customer' : 'Add New Customer'}</DialogTitle>
               <DialogDescription>
-                {editingId ? 'Update customer information' : 'Enter the details for a new customer'}
+                {editingId ? 'Update customer information' : 'Enter complete customer details for loan application'}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Full Name</label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="John Doe"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="john@example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phone</label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+1 (555) 000-0000"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
-                <Input
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="City, State"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Address</label>
-                <Input
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="123 Main St"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">{editingId ? 'Update' : 'Create'}</Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={handleClose}>Cancel</Button>
-              </div>
-            </form>
+            <CustomerForm
+              initialData={editingCustomer}
+              onSubmit={handleFormSubmit}
+              isSubmitting={isSubmitting}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -178,7 +141,7 @@ export default function CustomersPage() {
             <p className="text-slate-600 mb-4">No customers yet</p>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => { setEditingId(null); setFormData({ name: '', email: '', phone: '', location: '', address: '' }); }}>
+                <Button onClick={() => { setEditingId(null); setEditingCustomer(undefined); }}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add First Customer
                 </Button>
@@ -194,6 +157,11 @@ export default function CustomersPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <CardTitle>{customer.name}</CardTitle>
+                    {customer.aadharNumber && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        Aadhar: {`XXXX-XXXX-${customer.aadharNumber.slice(-4)}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(customer)} className="p-1 hover:bg-slate-100 rounded">
@@ -203,6 +171,17 @@ export default function CustomersPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
+                {customer.occupationType && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <FileText className="w-4 h-4" />
+                    <span>{customer.occupationType}</span>
+                  </div>
+                )}
+                {customer.monthlyIncome && (
+                  <div className="text-sm text-slate-600">
+                    Income: <span className="font-semibold">Rs. {customer.monthlyIncome.toLocaleString()}</span>
+                  </div>
+                )}
                 {customer.email && (
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <Mail className="w-4 h-4" />
@@ -215,14 +194,11 @@ export default function CustomersPage() {
                     <span>{customer.phone}</span>
                   </div>
                 )}
-                {customer.location && (
+                {customer.currentCity && (
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <MapPin className="w-4 h-4" />
-                    <span>{customer.location}</span>
+                    <span>{customer.currentCity}, {customer.currentState}</span>
                   </div>
-                )}
-                {customer.address && (
-                  <p className="text-sm text-slate-600 mt-2">{customer.address}</p>
                 )}
                 <Link href={`/dashboard/loans?customerId=${customer.id}`}>
                   <Button variant="outline" className="w-full mt-4">View Loans</Button>
