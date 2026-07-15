@@ -11,11 +11,54 @@ export const users = sqliteTable('users', {
 
 export const customers = sqliteTable('customers', {
   id: text('id').primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  // Personal Information
   name: text('name').notNull(),
+  dateOfBirth: text('dateOfBirth'),
+  fathersName: text('fathersName'),
+  gender: text('gender'), // Male, Female, Transgender
+  maritalStatus: text('maritalStatus'), // Single, Married, Widow, Divorce
+  dependents: integer('dependents').default(0),
+  
+  // Contact Information
   email: text('email'),
   phone: text('phone'),
+  
+  // Identification Documents
+  aadharNumber: text('aadharNumber'),
+  panNumber: text('panNumber'),
+  voterIdNumber: text('voterIdNumber'),
+  
+  // Address Information
+  currentResidentialAddress: text('currentResidentialAddress'),
+  currentCity: text('currentCity'),
+  currentState: text('currentState'),
+  currentPincode: text('currentPincode'),
+  currentResidentialType: text('currentResidentialType'), // Own House, Rental House
+  currentResidenceStability: integer('currentResidenceStability'), // Years
+  
+  permanentResidentialAddress: text('permanentResidentialAddress'),
+  permanentCity: text('permanentCity'),
+  permanentState: text('permanentState'),
+  permanentPincode: text('permanentPincode'),
+  permanentResidentialType: text('permanentResidentialType'), // Own House, Rental House
+  permanentResidenceStability: integer('permanentResidenceStability'), // Years
+  
+  // Legacy fields for backwards compatibility
   location: text('location'),
   address: text('address'),
+  
+  // Bank Details
+  bankAccountNumber: text('bankAccountNumber'),
+  bankAccountType: text('bankAccountType'), // Savings, Current
+  bankAccountName: text('bankAccountName'),
+  bankBranchName: text('bankBranchName'),
+  ifscCode: text('ifscCode'),
+  
+  // Occupation Details
+  occupationType: text('occupationType'), // Self Employed Business, Salaried Worker, House Wife, Other
+  monthlyIncome: real('monthlyIncome'),
+  businessAddress: text('businessAddress'),
+  
   createdAt: integer('createdAt', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });

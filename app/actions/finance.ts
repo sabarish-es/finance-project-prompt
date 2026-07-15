@@ -5,18 +5,57 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 // Customer Actions
-export async function createCustomer(
-  name: string,
-  email: string,
-  phone: string,
-  location: string,
-  address: string
-) {
+export async function createCustomer(customerData: {
+  name: string;
+  dateOfBirth?: string;
+  fathersName?: string;
+  gender?: string;
+  maritalStatus?: string;
+  dependents?: number;
+  email?: string;
+  phone?: string;
+  aadharNumber?: string;
+  panNumber?: string;
+  voterIdNumber?: string;
+  currentResidentialAddress?: string;
+  currentCity?: string;
+  currentState?: string;
+  currentPincode?: string;
+  currentResidentialType?: string;
+  currentResidenceStability?: number;
+  permanentResidentialAddress?: string;
+  permanentCity?: string;
+  permanentState?: string;
+  permanentPincode?: string;
+  permanentResidentialType?: string;
+  permanentResidenceStability?: number;
+  location?: string;
+  address?: string;
+  bankAccountNumber?: string;
+  bankAccountType?: string;
+  bankAccountName?: string;
+  bankBranchName?: string;
+  ifscCode?: string;
+  occupationType?: string;
+  monthlyIncome?: number;
+  businessAddress?: string;
+}) {
   try {
     const session = await getSession();
     if (!session) throw new Error('Unauthorized');
 
-    const customer = db.insert('customers', { name, email, phone, location, address } as any);
+    // Validate ID documents
+    if (customerData.aadharNumber && !/^\d{12}$/.test(customerData.aadharNumber.replace(/\D/g, ''))) {
+      return { error: 'Aadhar number must be 12 digits' };
+    }
+    if (customerData.panNumber && !/^[A-Z0-9]{10}$/.test(customerData.panNumber)) {
+      return { error: 'PAN must be 10 alphanumeric characters' };
+    }
+    if (customerData.voterIdNumber && !/^[A-Z0-9]{10}$/.test(customerData.voterIdNumber)) {
+      return { error: 'Voter ID must be 10 characters' };
+    }
+
+    const customer = db.insert('customers', customerData as any);
 
     revalidatePath('/dashboard/customers');
     return { success: true, customer };
@@ -46,17 +85,58 @@ export async function getCustomers() {
 
 export async function updateCustomer(
   id: string,
-  name: string,
-  email: string,
-  phone: string,
-  location: string,
-  address: string
+  customerData: {
+    name: string;
+    dateOfBirth?: string;
+    fathersName?: string;
+    gender?: string;
+    maritalStatus?: string;
+    dependents?: number;
+    email?: string;
+    phone?: string;
+    aadharNumber?: string;
+    panNumber?: string;
+    voterIdNumber?: string;
+    currentResidentialAddress?: string;
+    currentCity?: string;
+    currentState?: string;
+    currentPincode?: string;
+    currentResidentialType?: string;
+    currentResidenceStability?: number;
+    permanentResidentialAddress?: string;
+    permanentCity?: string;
+    permanentState?: string;
+    permanentPincode?: string;
+    permanentResidentialType?: string;
+    permanentResidenceStability?: number;
+    location?: string;
+    address?: string;
+    bankAccountNumber?: string;
+    bankAccountType?: string;
+    bankAccountName?: string;
+    bankBranchName?: string;
+    ifscCode?: string;
+    occupationType?: string;
+    monthlyIncome?: number;
+    businessAddress?: string;
+  }
 ) {
   try {
     const session = await getSession();
     if (!session) throw new Error('Unauthorized');
 
-    db.update('customers', id, { name, email, phone, location, address });
+    // Validate ID documents
+    if (customerData.aadharNumber && !/^\d{12}$/.test(customerData.aadharNumber.replace(/\D/g, ''))) {
+      return { error: 'Aadhar number must be 12 digits' };
+    }
+    if (customerData.panNumber && !/^[A-Z0-9]{10}$/.test(customerData.panNumber)) {
+      return { error: 'PAN must be 10 alphanumeric characters' };
+    }
+    if (customerData.voterIdNumber && !/^[A-Z0-9]{10}$/.test(customerData.voterIdNumber)) {
+      return { error: 'Voter ID must be 10 characters' };
+    }
+
+    db.update('customers', id, customerData);
 
     revalidatePath('/dashboard/customers');
     return { success: true };
